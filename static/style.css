@@ -1,0 +1,340 @@
+/* =========================================================
+   Session Hijacking Demo — Stylesheet
+   Simple, clean, white background with dark-blue headings
+   ========================================================= */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    background: #ffffff;
+    color: #222222;
+    line-height: 1.6;
+}
+
+/* ---- Layout ---- */
+.page {
+    max-width: 760px;
+    margin: 48px auto;
+    padding: 0 20px 80px;
+}
+
+.page-narrow {
+    max-width: 440px;
+    margin: 80px auto;
+    padding: 0 20px;
+}
+
+/* ---- Typography ---- */
+h1 {
+    font-size: 22px;
+    color: #0a2c5a;
+    margin-bottom: 4px;
+}
+
+h2 {
+    font-size: 17px;
+    color: #0a2c5a;
+    margin-bottom: 12px;
+    margin-top: 28px;
+}
+
+h3 {
+    font-size: 14px;
+    color: #0a2c5a;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+p {
+    margin-bottom: 10px;
+    color: #444;
+}
+
+small {
+    color: #777;
+    font-size: 13px;
+}
+
+/* ---- Cards / Boxes ---- */
+.card {
+    border: 1px solid #d8dde6;
+    border-radius: 6px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    background: #fff;
+}
+
+.card-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #0a2c5a;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e8ecf0;
+}
+
+/* ---- Status Badges ---- */
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.badge-active  { background: #e6f4ea; color: #1a6632; }
+.badge-match   { background: #e6f4ea; color: #1a6632; }
+.badge-mismatch{ background: #fce8e6; color: #a62318; }
+.badge-warning { background: #fef7e0; color: #7d5700; }
+
+/* ---- Forms ---- */
+.form-group {
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="password"],
+textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #c8cdd5;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #222;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+    border-color: #0a2c5a;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: monospace;
+    font-size: 13px;
+}
+
+/* ---- Buttons ---- */
+.btn {
+    display: inline-block;
+    padding: 9px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.btn-primary {
+    background: #0a2c5a;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #0d3b7a;
+}
+
+.btn-secondary {
+    background: #f0f2f5;
+    color: #333;
+    border: 1px solid #c8cdd5;
+}
+
+.btn-secondary:hover {
+    background: #e2e6eb;
+}
+
+.btn-danger {
+    background: #a62318;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #c0281c;
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 13px;
+}
+
+/* ---- Tables ---- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid #e8ecf0;
+    vertical-align: top;
+}
+
+th {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #555;
+    background: #f7f8fa;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* ---- Token box ---- */
+.token-box {
+    font-family: monospace;
+    font-size: 13px;
+    background: #f7f8fa;
+    border: 1px solid #d8dde6;
+    border-radius: 4px;
+    padding: 10px 12px;
+    word-break: break-all;
+    color: #333;
+}
+
+/* ---- Alert messages ---- */
+.alert {
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.alert-error   { background: #fce8e6; border: 1px solid #f5c2be; color: #7c2219; }
+.alert-success { background: #e6f4ea; border: 1px solid #b7dfbe; color: #175525; }
+.alert-warning { background: #fef7e0; border: 1px solid #f9d776; color: #6b4400; }
+.alert-info    { background: #e8f0fe; border: 1px solid #aec6f6; color: #1a3a6e; }
+
+/* ---- Event Log ---- */
+.log-entry {
+    font-size: 13px;
+    font-family: monospace;
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f2f5;
+    display: flex;
+    gap: 10px;
+}
+
+.log-entry:last-child { border-bottom: none; }
+
+.log-ts    { color: #888; min-width: 145px; }
+.log-type  { min-width: 130px; font-weight: 600; }
+.log-type-LOGIN       { color: #1a6632; }
+.log-type-LOGIN_FAIL  { color: #a62318; }
+.log-type-LOGOUT      { color: #555; }
+.log-type-FP_MATCH    { color: #1a6632; }
+.log-type-SUSPICIOUS  { color: #a62318; }
+.log-type-HIJACK_BLOCKED  { color: #a62318; }
+.log-type-HIJACK_ATTEMPT  { color: #7d5700; }
+.log-msg   { color: #333; }
+
+/* ---- Comparison table ---- */
+.field-matched   { color: #1a6632; font-weight: 600; }
+.field-mismatched{ color: #a62318; font-weight: 600; }
+
+/* ---- Utility ---- */
+.row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.mt-2 { margin-top: 8px; }
+.mt-4 { margin-top: 16px; }
+.mb-0 { margin-bottom: 0; }
+
+.text-muted { color: #777; }
+.text-center { text-align: center; }
+
+hr {
+    border: none;
+    border-top: 1px solid #e8ecf0;
+    margin: 20px 0;
+}
+
+/* ---- Login page ---- */
+.login-header {
+    margin-bottom: 28px;
+    text-align: center;
+}
+
+.login-header h1 {
+    font-size: 24px;
+}
+
+.login-header p {
+    color: #666;
+    font-size: 14px;
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+/* ---- Page header ---- */
+.page-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e8ecf0;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.page-header-left h1 { margin-bottom: 2px; }
+
+/* ---- Blocked page ---- */
+.blocked-box {
+    max-width: 560px;
+    margin: 100px auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.blocked-box h1 {
+    font-size: 20px;
+    color: #a62318;
+    margin-bottom: 12px;
+}
+
+.blocked-box p {
+    color: #444;
+    margin-bottom: 20px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 600px) {
+    .page, .page-narrow { margin: 24px auto; }
+    .page-header { flex-direction: column; }
+    th, td { padding: 6px 8px; }
+}

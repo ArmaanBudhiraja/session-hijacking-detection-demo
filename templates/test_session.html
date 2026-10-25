@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Session — Hijacking Detection Demo</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="page-narrow" style="max-width:600px; margin-top:60px;">
+
+  <div style="margin-bottom:24px;">
+    <h1>Session Hijacking Test</h1>
+    <p style="color:#444; font-size:14px; margin-top:4px;">
+      Paste the session token copied from the original browser and click
+      "Test Session". The server will compare your browser fingerprint with
+      the one recorded at login and make the access-control decision.
+    </p>
+  </div>
+
+  <!-- Result banner -->
+  {% if result %}
+
+    {% if result.status == "hijack_detected" %}
+    <div class="alert alert-error">
+      <strong>Detection Result: Hijacking Detected</strong><br>
+      {{ result.message }}
+    </div>
+
+    <div class="card">
+      <div class="card-title">Fingerprint Comparison</div>
+      <table>
+        <tr>
+          <th style="width:160px">Attribute</th>
+          <th>Original (Login Browser)</th>
+          <th>Incoming (This Browser)</th>
+          <th>Match</th>
+        </tr>
+        {% set fields = ["user_agent", "screen_width", "screen_height", "timezone"] %}
+        {% for f in fields %}
+        <tr>
+          <td>{{ f.replace("_", " ").title() }}</td>
+          <td style="font-size:12px; word-break:break-all">{{ result.original_fp[f] }}</td>
+          <td style="font-size:12px; word-break:break-all">{{ result.incoming_fp[f] }}</td>
+          <td>
+            {% if f in result.comparison.matched %}
+              <span class="field-matched">Yes</span>
+            {% else %}
+              <span class="field-mismatched">No</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+      <p class="text-muted mt-4" style="font-size:13px;">
+        Mismatch ratio: {{ (result.comparison.mismatch_ratio * 100)|int }}% of fields differ.
+        Threshold: &gt;50% triggers detection.
+        This session has been revoked on the server.
+      </p>
+    </div>
+
+    <a href="/login" class="btn btn-primary">Go to Login</a>
+
+    {% elif result.status == "match" %}
+    <div class="alert alert-warning">
+      <strong>Detection Result: Same Browser</strong><br>
+      {{ result.message }}
+    </div>
+
+    <div class="card">
+      <div class="card-title">Fingerprint Comparison</div>
+      <table>
+        <tr>
+          <th style="width:160px">Attribute</th>
+          <th>Original</th>
+          <th>Incoming</th>
+          <th>Match</th>
+        </tr>
+        {% set fields = ["user_agent", "screen_width", "screen_height", "timezone"] %}
+        {% for f in fields %}
+        <tr>
+          <td>{{ f.replace("_", " ").title() }}</td>
+          <td style="font-size:12px; word-break:break-all">{{ result.original_fp[f] }}</td>
+          <td style="font-size:12px; word-break:break-all">{{ result.incoming_fp[f] }}</td>
+          <td>
+            {% if f in result.comparison.matched %}
+              <span class="field-matched">Yes</span>
+            {% else %}
+              <span class="field-mismatched">No</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+      <p class="text-muted mt-4" style="font-size:13px;">
+        Tip: To trigger detection, open this page in a different browser
+        (e.g., Firefox vs Chrome) with a different screen resolution or timezone.
+      </p>
+    </div>
+
+    {% elif result.status in ("invalid", "revoked") %}
+    <div class="alert alert-error">
+      <strong>Token Invalid or Revoked</strong><br>
+      {{ result.message }}
+    </div>
+    <a href="/login" class="btn btn-primary">Go to Login</a>
+
+    {% elif result.status == "error" %}
+    <div class="alert alert-error">{{ result.message }}</div>
+    {% endif %}
+
+  {% endif %}
+
+  <!-- Input form -->
+  {% if not result or result.status in ("error", "match") %}
+  <div class="card" style="margin-top:{% if result %}20px{% else %}0{% endif %}">
+    <div class="card-title">Paste Token and Test</div>
+
+    <form id="testForm" method="POST" action="/demo/test-session">
+
+      <!-- Hidden fingerprint fields -->
+      <input type="hidden" name="fp_user_agent"    id="fp_user_agent">
+      <input type="hidden" name="fp_screen_width"  id="fp_screen_width">
+      <input type="hidden" name="fp_screen_height" id="fp_screen_height">
+      <input type="hidden" name="fp_timezone"      id="fp_timezone">
+
+      <div class="form-group">
+        <label for="token">Session Token</label>
+        <textarea id="token" name="token"
+                  placeholder="Paste the session token copied from the dashboard..."
+                  rows="3">{% if result and result.status == 'match' and request.form.token %}{{ request.form.token }}{% endif %}</textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%">
+        Test Session
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+  <p class="text-muted text-center" style="font-size:12px; margin-top:16px;">
+    This page accepts the token via form POST — no shared cookies required.<br>
+    The server makes all access-control decisions.
+  </p>
+
+</div>
+
+<script>
+  document.getElementById("testForm") &&
+  document.getElementById("testForm").addEventListener("submit", function () {
+    document.getElementById("fp_user_agent").value    = navigator.userAgent;
+    document.getElementById("fp_screen_width").value  = screen.width;
+    document.getElementById("fp_screen_height").value = screen.height;
+    document.getElementById("fp_timezone").value      = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  });
+</script>
+
+</body>
+</html>

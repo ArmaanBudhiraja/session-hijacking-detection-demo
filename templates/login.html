@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Session Hijacking Demo</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="page-narrow">
+  <div class="login-header">
+    <h1>Session Hijacking Demo</h1>
+    <p>Behavioral Fingerprint-Based Detection</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Login</div>
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form id="loginForm" method="POST" action="/login">
+
+      <!-- Hidden fingerprint fields — populated by JS before submit -->
+      <input type="hidden" name="fp_user_agent"    id="fp_user_agent">
+      <input type="hidden" name="fp_screen_width"  id="fp_screen_width">
+      <input type="hidden" name="fp_screen_height" id="fp_screen_height">
+      <input type="hidden" name="fp_timezone"      id="fp_timezone">
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username"
+               value="student" autocomplete="username" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+               value="student123" autocomplete="current-password" required>
+      </div>
+
+      <div class="form-group mb-0">
+        <button type="submit" class="btn btn-primary" style="width:100%">
+          Log In
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <p class="text-muted text-center" style="font-size:13px;">
+    Demo credentials: <strong>student</strong> / <strong>student123</strong>
+  </p>
+</div>
+
+<script>
+  // Capture browser fingerprint fields before the form is submitted
+  document.getElementById("loginForm").addEventListener("submit", function () {
+    document.getElementById("fp_user_agent").value    = navigator.userAgent;
+    document.getElementById("fp_screen_width").value  = screen.width;
+    document.getElementById("fp_screen_height").value = screen.height;
+    document.getElementById("fp_timezone").value      = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  });
+</script>
+
+</body>
+</html>

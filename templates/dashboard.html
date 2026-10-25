@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Session Hijacking Demo</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>Protected Dashboard</h1>
+      <small>Session Hijacking Demo &mdash; Behavioral Fingerprint Detection</small>
+    </div>
+    <form method="POST" action="/logout">
+      <button type="submit" class="btn btn-secondary btn-sm">Logout</button>
+    </form>
+  </div>
+
+  <!-- Session status -->
+  <div class="card">
+    <div class="card-title">Session Information</div>
+    <table>
+      <tr>
+        <th style="width:180px">Field</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>Logged in as</td>
+        <td><strong>{{ username }}</strong></td>
+      </tr>
+      <tr>
+        <td>Session Status</td>
+        <td><span class="badge badge-active">Active</span></td>
+      </tr>
+      <tr>
+        <td>Fingerprint Status</td>
+        <td>
+          {% if comparison.suspicious %}
+            <span class="badge badge-mismatch">Mismatch</span>
+          {% else %}
+            <span class="badge badge-match">Matched</span>
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>Session Created</td>
+        <td>{{ created_at }}</td>
+      </tr>
+      <tr>
+        <td>Fingerprint Hash</td>
+        <td><code>{{ fp_hash }}</code></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Browser fingerprint -->
+  <div class="card">
+    <div class="card-title">Browser Fingerprint (Captured at Login)</div>
+    <table>
+      <tr>
+        <th style="width:180px">Attribute</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>User Agent</td>
+        <td style="font-size:13px; word-break:break-all">{{ fp.user_agent }}</td>
+      </tr>
+      <tr>
+        <td>Screen Resolution</td>
+        <td>{{ fp.screen_width }} x {{ fp.screen_height }}</td>
+      </tr>
+      <tr>
+        <td>Timezone</td>
+        <td>{{ fp.timezone }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Demo Controls -->
+  <div class="card">
+    <div class="card-title">Demo Controls</div>
+
+    <p style="margin-bottom:16px; color:#444; font-size:14px;">
+      Use the controls below to demonstrate session hijacking. Copy the token,
+      then open the test page in a different browser and paste it there.
+    </p>
+
+    <!-- Current session token -->
+    <h3>Current Session Token</h3>
+    <div class="token-box" id="tokenDisplay">{{ token }}</div>
+
+    <div class="row mt-2">
+      <button class="btn btn-secondary btn-sm" id="copyTokenBtn" onclick="copyToken()">
+        Copy Token
+      </button>
+      <span id="copyConfirm" style="display:none; color:#1a6632; font-size:13px; font-weight:600;">
+        Token copied to clipboard.
+      </span>
+    </div>
+
+    <hr>
+
+    <!-- Simulate theft -->
+    <h3>Simulate Token Theft</h3>
+    <p style="font-size:14px; color:#444; margin-bottom:10px;">
+      Step 1: Click "Copy Token" above to copy the session token.<br>
+      Step 2: Open the link below in a different browser (e.g., Firefox, Chrome, or a private window).<br>
+      Step 3: Paste the token and click "Test Session" to trigger hijacking detection.
+    </p>
+
+    <div class="form-group mb-0">
+      <label>Test Page URL</label>
+      <div class="token-box">http://127.0.0.1:5050/demo/test-session</div>
+    </div>
+
+    <div class="mt-2">
+      <a href="/demo/test-session" target="_blank" class="btn btn-secondary btn-sm">
+        Open Test Page (this browser)
+      </a>
+    </div>
+  </div>
+
+  <!-- Event log -->
+  <div class="card">
+    <div class="card-title">Server Event Log</div>
+    <small class="text-muted" style="display:block; margin-bottom:10px;">
+      Most recent events first. Shows login, fingerprint checks, and detection results.
+    </small>
+    <div id="eventLog">
+      {% for ts, etype, msg in event_log %}
+      <div class="log-entry">
+        <span class="log-ts">{{ ts }}</span>
+        <span class="log-type log-type-{{ etype }}">{{ etype }}</span>
+        <span class="log-msg">{{ msg }}</span>
+      </div>
+      {% else %}
+      <p class="text-muted" style="font-size:13px;">No events yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <p class="text-muted" style="font-size:12px; text-align:center;">
+    Note: Browser fingerprinting is a heuristic technique.
+    It does not uniquely identify individuals and is not a guarantee against all forms of session hijacking.
+    This is a demonstration only.
+  </p>
+
+</div><!-- .page -->
+
+<script>
+  // ---- Copy token ----
+  function copyToken() {
+    const token = document.getElementById("tokenDisplay").textContent.trim();
+    navigator.clipboard.writeText(token).then(() => {
+      const conf = document.getElementById("copyConfirm");
+      conf.style.display = "inline";
+      setTimeout(() => { conf.style.display = "none"; }, 3000);
+    }).catch(() => {
+      // Fallback for browsers that block clipboard without HTTPS
+      const el = document.createElement("textarea");
+      el.value = token;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      const conf = document.getElementById("copyConfirm");
+      conf.style.display = "inline";
+      setTimeout(() => { conf.style.display = "none"; }, 3000);
+    });
+  }
+
+  // ---- Refresh event log every 5 seconds ----
+  function refreshLog() {
+    fetch("/api/events")
+      .then(r => r.json())
+      .then(events => {
+        const container = document.getElementById("eventLog");
+        if (!events.length) return;
+        container.innerHTML = events.map(e =>
+          `<div class="log-entry">
+            <span class="log-ts">${e.timestamp}</span>
+            <span class="log-type log-type-${e.type}">${e.type}</span>
+            <span class="log-msg">${e.message}</span>
+          </div>`
+        ).join("");
+      });
+  }
+  setInterval(refreshLog, 5000);
+</script>
+
+</body>
+</html>
