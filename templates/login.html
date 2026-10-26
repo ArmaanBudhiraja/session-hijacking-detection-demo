@@ -25,6 +25,8 @@
 
       <!-- Hidden fingerprint fields — populated by JS before submit -->
       <input type="hidden" name="fp_user_agent"    id="fp_user_agent">
+      <input type="hidden" name="fp_platform"      id="fp_platform">
+      <input type="hidden" name="fp_language"      id="fp_language">
       <input type="hidden" name="fp_screen_width"  id="fp_screen_width">
       <input type="hidden" name="fp_screen_height" id="fp_screen_height">
       <input type="hidden" name="fp_timezone"      id="fp_timezone">
@@ -58,6 +60,8 @@
   // Capture browser fingerprint fields before the form is submitted
   document.getElementById("loginForm").addEventListener("submit", function () {
     document.getElementById("fp_user_agent").value    = navigator.userAgent;
+    document.getElementById("fp_platform").value      = navigator.platform;
+    document.getElementById("fp_language").value      = navigator.language;
     document.getElementById("fp_screen_width").value  = screen.width;
     document.getElementById("fp_screen_height").value = screen.height;
     document.getElementById("fp_timezone").value      = Intl.DateTimeFormat().resolvedOptions().timeZone;

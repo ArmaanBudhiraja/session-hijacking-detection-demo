@@ -40,9 +40,11 @@ DEMO_PASSWORD = "student123"
 # Fingerprint helpers
 # ---------------------------------------------------------------------------
 
-FINGERPRINT_FIELDS = ["user_agent", "screen_width", "screen_height", "timezone"]
+FINGERPRINT_FIELDS = ["user_agent", "platform", "language", "screen_width", "screen_height", "timezone"]
 # Fraction of fields that must differ to flag as suspicious
-MISMATCH_THRESHOLD = 0.5
+# Chrome vs Firefox on same laptop: user_agent is ALWAYS different = 1/6 = 16.7%
+# Setting threshold to 0.15 ensures any cross-browser access is detected
+MISMATCH_THRESHOLD = 0.15
 
 
 def _hash_fingerprint(fp: dict) -> str:
@@ -105,6 +107,8 @@ def login():
         if username == DEMO_USERNAME and password == DEMO_PASSWORD:
             fp = {
                 "user_agent":    request.form.get("fp_user_agent", ""),
+                "platform":      request.form.get("fp_platform", ""),
+                "language":      request.form.get("fp_language", ""),
                 "screen_width":  request.form.get("fp_screen_width", ""),
                 "screen_height": request.form.get("fp_screen_height", ""),
                 "timezone":      request.form.get("fp_timezone", ""),
@@ -152,12 +156,14 @@ def dashboard():
     # Re-check fingerprint (passed as query params by the page JS on load)
     incoming_fp = {
         "user_agent":    request.args.get("fp_user_agent", request.user_agent.string),
+        "platform":      request.args.get("fp_platform", ""),
+        "language":      request.args.get("fp_language", ""),
         "screen_width":  request.args.get("fp_screen_width", ""),
         "screen_height": request.args.get("fp_screen_height", ""),
         "timezone":      request.args.get("fp_timezone", ""),
     }
 
-    if any(request.args.get(f"fp_{k}") for k in ("user_agent", "screen_width", "screen_height", "timezone")):
+    if any(request.args.get(f"fp_{k}") for k in ("user_agent", "platform", "language", "screen_width", "screen_height", "timezone")):
         comparison = _compare_fingerprints(session["fingerprint"], incoming_fp)
         if comparison["suspicious"]:
             session["status"] = "revoked"
@@ -236,6 +242,8 @@ def test_session():
 
     incoming_fp = {
         "user_agent":    fp_user_agent,
+        "platform":      request.form.get("fp_platform", ""),
+        "language":      request.form.get("fp_language", ""),
         "screen_width":  fp_screen_width,
         "screen_height": fp_screen_height,
         "timezone":      fp_timezone,
