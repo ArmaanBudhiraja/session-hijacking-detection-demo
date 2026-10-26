@@ -7,7 +7,9 @@ This guide walks through the full session hijacking demonstration from start to 
 ## Prerequisites
 
 - The app is running at `http://127.0.0.1:5050`
-- You have two different browsers available (e.g., Chrome + Firefox), OR one browser + an incognito/private window
+- You have two different browsers available (e.g., Chrome + Firefox), OR one browser + a different device
+
+> **Why not incognito?** Incognito windows in the same browser share the same `navigator.platform`, `navigator.language`, and `navigator.userAgent` — so the fingerprint will match and hijacking won't be detected. Use a **genuinely different browser** (Chrome vs Firefox) or a different device.
 
 ---
 
@@ -32,7 +34,7 @@ Use the demo credentials:
 
 Click **Log In**.
 
-> Behind the scenes, before the form is submitted, JavaScript silently captures your browser's fingerprint and appends it to the POST request as hidden fields.
+> Behind the scenes, before the form is submitted, JavaScript silently captures your browser's fingerprint (6 fields) and appends it to the POST request as hidden fields.
 
 ---
 
@@ -41,7 +43,7 @@ Click **Log In**.
 After login you'll see the **Protected Dashboard** with:
 
 - ✅ **Session Information** — your username, session status, fingerprint status, creation time, and fingerprint hash
-- 🖥️ **Browser Fingerprint** — the exact values captured at login (User Agent, Screen Resolution, Timezone)
+- 🖥️ **Browser Fingerprint** — the exact 6 values captured at login (User Agent, Platform, Language, Screen Resolution, Timezone)
 - 🎛️ **Demo Controls** — your full session token + a "Copy Token" button
 - 📋 **Server Event Log** — live log showing `LOGIN` event (auto-refreshes every 5s)
 
@@ -65,9 +67,7 @@ Open **Browser B** (e.g., Firefox) and navigate to:
 http://127.0.0.1:5050/demo/test-session
 ```
 
-> **Why a different browser?** To produce a different fingerprint. Chrome and Firefox report different `User-Agent` strings, which is enough to cross the 50% mismatch threshold (1 out of 4 fields).
->
-> Using a different device (phone vs laptop) will also work and usually mismatches all 4 fields.
+> **Why a different browser?** To produce a different fingerprint. Chrome and Firefox report different `User-Agent` strings, which alone crosses the >15% mismatch threshold (1 out of 6 fields = ~17%). Using a different device (phone vs laptop) will mismatch even more fields.
 
 ---
 
@@ -76,7 +76,7 @@ http://127.0.0.1:5050/demo/test-session
 1. Paste the copied token into the **"Session Token"** textarea
 2. Click **"Test Session"**
 
-> JavaScript again silently captures Browser B's fingerprint and submits it alongside the token.
+> JavaScript again silently captures Browser B's fingerprint (all 6 fields) and submits it alongside the token.
 
 ---
 
@@ -86,8 +86,8 @@ http://127.0.0.1:5050/demo/test-session
 
 You'll see:
 - A red alert: *"Suspicious session detected. Your browser fingerprint does not match the original session. Access blocked."*
-- A **Fingerprint Comparison table** showing which fields matched vs mismatched
-- The mismatch ratio (e.g., 75% — 3 out of 4 fields differ)
+- A **Fingerprint Comparison table** showing which of the 6 fields matched vs mismatched
+- The mismatch ratio (e.g., 83% — 5 out of 6 fields differ on a phone vs laptop)
 - Confirmation that the session has been revoked on the server
 
 ---
@@ -98,9 +98,9 @@ Switch back to **Browser A** (Chrome) and refresh the dashboard.
 
 You'll be **kicked out** — redirected to the login page with the cookie cleared. The original victim's session is gone.
 
-Check the **Server Event Log** on the login redirect — it will show:
+The **Server Event Log** will show:
 ```
-HIJACK_BLOCKED  Session hijacking detected! Token abc12345... Mismatched: [user_agent, timezone, screen_width]. Session revoked.
+HIJACK_BLOCKED  Session hijacking detected! Token abc12345... Mismatched: [user_agent, platform, timezone, screen_width, screen_height]. Session revoked.
 ```
 
 ---
@@ -115,7 +115,7 @@ To show the system works correctly when the **same** browser accesses the test p
 
 **Expected result:** ✅ **"Fingerprint matched. This appears to be the same browser — no hijacking detected."**
 
-This demonstrates the system doesn't produce false positives for legitimate same-device access.
+All 6 fingerprint fields will match, the mismatch ratio is 0%, and access is granted. This demonstrates the system doesn't produce false positives for legitimate same-device access.
 
 ---
 
@@ -139,3 +139,4 @@ This demonstrates the system doesn't produce false positives for legitimate same
 - The **event log auto-refreshes** every 5 seconds — the audience can watch the `HIJACK_BLOCKED` entry appear in real time
 - Use the `/api/events` endpoint (`http://127.0.0.1:5050/api/events`) to show the raw JSON events as a bonus
 - After a hijack demo, **log in again** to reset — the server generates a new token each time
+- The threshold is **>15%** — even one mismatched field out of 6 is enough to trigger detection
